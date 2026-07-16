@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "football-xg"
+version = "0.1.0"
+description = "Expected Goals (xG) and match outcome prediction on StatsBomb Open Data"
+readme = "README.md"
+requires-python = ">=3.12"
+authors = [{ name = "Yoosuf Ahamed" }]
+
+# Runtime dependencies are pinned in requirements.txt, which is the source of
+# truth for the reproducible environment. This file exists so the project is
+# installable (`pip install -e .`) and importable as a package.
+dependencies = []
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

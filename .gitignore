@@ -1,0 +1,31 @@
+# --- Environments ---
+.venv/
+venv/
+env/
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# --- Data ---
+# Raw and processed data are reproducible from StatsBomb Open Data via src/,
+# and are far too large for git. Keep the folders, ignore the contents.
+data/raw/*
+data/processed/*
+!data/**/.gitkeep
+
+# --- Model artifacts ---
+models/*
+!models/.gitkeep
+
+# --- Generated figures ---
+reports/figures/*
+!reports/figures/.gitkeep
+
+# --- OS / editor ---
+.DS_Store
+.vscode/
+.idea/
