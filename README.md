@@ -23,10 +23,25 @@ Work in progress, built in stages:
 
 Requires Python 3.12.
 
+**macOS only** — LightGBM's wheel links against OpenMP, which macOS does not ship. Install it first, or `import lightgbm` fails with `Library not loaded: @rpath/libomp.dylib`:
+
+```bash
+brew install libomp
+```
+
+Then create the environment:
+
 ```bash
 python3.12 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 .venv/bin/pip install -e .
+```
+
+To reproduce the exact versions this project was developed against, use the lock file
+instead of `requirements.txt`:
+
+```bash
+.venv/bin/pip install -r requirements.lock.txt
 ```
 
 Register the environment as a Jupyter kernel so the notebooks use it:
