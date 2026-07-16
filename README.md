@@ -12,12 +12,24 @@ No synthetic data. Every number traces back to StatsBomb's publicly released eve
 Work in progress, built in stages:
 
 - [x] **0. Project scaffolding & environment**
-- [ ] **1. Data ingestion & EDA** — load StatsBomb data, build shot/match tables, shot maps and pitch heatmaps
+- [x] **1. Data ingestion & EDA** — [`notebooks/01_data_survey.ipynb`](notebooks/01_data_survey.ipynb)
 - [ ] **2. Feature engineering** — shot-level, sequence-level, and match-level features
 - [ ] **3. Baseline xG model** — LightGBM + calibration + SHAP
 - [ ] **4. PyTorch sequence xG model** — attention over pre-shot events, compared to the baseline
 - [ ] **5. Match outcome model** — aggregate to match level, benchmark vs. bookmaker odds
 - [ ] **6. Write-up & demo** — portfolio write-up; optional FastAPI endpoint
+
+## The data
+
+**La Liga 2015/16** — the complete 380-match season: 1.3M events, 9,168 shots, 1,014 goals.
+
+The choice matters more than it looks. Most La Liga seasons in StatsBomb's free tier are
+*Barcelona-only* — every match features one club, because the data was released to showcase
+Messi's career. Training an xG model on that teaches it one team's shot profile and calls it
+football. The 2015/16 release is one of the few complete league seasons available free: all 20
+teams, no team in more than ~10% of matches, and a freeze frame of every player's position on
+99.1% of shots. The coverage comparison that drove the decision is the first section of the
+survey notebook.
 
 ## Setup
 
@@ -61,7 +73,9 @@ Verify the install:
 
 | Path | Contents |
 | --- | --- |
-| `src/football_xg/` | All reusable code: data loading, features, models, training, evaluation |
+| `src/football_xg/config.py` | Paths, pitch geometry, competition scope — everything else imports from here |
+| `src/football_xg/data.py` | StatsBomb ingestion, on-disk cache, shots table |
+| `src/football_xg/validate.py` | Data quality checks, including the leakage guard |
 | `notebooks/` | Exploratory analysis only — findings get promoted into `src/` |
 | `data/raw/` | Cached StatsBomb JSON (git-ignored, reproducible) |
 | `data/processed/` | Derived parquet tables (git-ignored, reproducible) |
@@ -76,8 +90,19 @@ Data and artifacts are deliberately kept out of git — everything under `data/`
 
 Two concerns drive most of the design decisions in this repo:
 
-- **Leakage.** Shot outcome must be predicted using only information available *before* the ball is struck. Post-shot fields (shot outcome, end location, goalkeeper reaction) are excluded from features, and splits are time-respecting — train on earlier matches, test on later ones, never a random shuffle.
-- **Class imbalance.** Roughly 1 shot in 10 is a goal, so accuracy is close to meaningless. Models are judged on log loss, Brier score, and calibration curves — an xG model is only useful if its probabilities are honest.
+- **Leakage.** Shot outcome must be predicted using only information available *before* the ball is struck. Post-shot fields — where the ball ended up, whether it was deflected, whether it was saved — are dropped at ingestion rather than filtered at training time, so no feature can reach them by accident. They're enumerated in `data.POST_SHOT_FIELDS` and a test asserts none survive. Splits are time-respecting: train on earlier matches, test on later ones, never a random shuffle.
+- **Class imbalance.** 11.1% of shots are goals, so accuracy is meaningless — predicting "no goal" every time scores 88.9%. Models are judged on log loss, Brier score, and calibration curves. An xG model is only useful if its probabilities are honest.
+
+Two reference points bracket the problem, both measured in the survey notebook:
+
+| | Log loss | Brier |
+| --- | --- | --- |
+| Predicting the base rate (the floor) | 0.3478 | 0.0984 |
+| StatsBomb's own xG (the bar) | 0.2593 | 0.0751 |
+
+StatsBomb ship their xG on every shot. It is **not** a feature — training on it would just teach
+our model to imitate theirs. It's well calibrated on this season and its season total lands within
+3.4% of actual goals scored, so it's a serious benchmark rather than a strawman.
 
 ## Data & attribution
 

@@ -41,6 +41,19 @@ def ensure_dirs() -> None:
 
 
 # --------------------------------------------------------------------------
+# Competition scope
+# --------------------------------------------------------------------------
+# La Liga 2015/2016. StatsBomb's free tier is uneven: most La Liga seasons are
+# Barcelona-only (every match features them), which would bias an xG model
+# towards one team's shot profile. The 2015/16 release is different -- it is the
+# complete 380-match season, all 20 teams, no team appearing in more than 10% of
+# matches. That balance, plus freeze frames on every shot, is why this season is
+# the scope. See notebooks/01_data_survey.ipynb for the coverage comparison.
+COMPETITION_ID = 11
+SEASON_ID = 27
+COMPETITION_LABEL = "La Liga 2015/2016"
+
+# --------------------------------------------------------------------------
 # Pitch geometry (StatsBomb coordinate system)
 # --------------------------------------------------------------------------
 # StatsBomb pitches are normalised to 120x80 regardless of the real stadium
